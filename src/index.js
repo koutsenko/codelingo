@@ -2,6 +2,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
+const open = require('open');
 
 /**
  * Папки-исключения.
@@ -213,7 +214,9 @@ const walk = async (dir) => {
     </html>
     `;
 
-    await fs.writeFile(path.resolve(__dirname, '../report/report.html'), data);
+    const outputPath = path.resolve(__dirname, '../report/report.html');
+    await fs.writeFile(outputPath, data);
+    await open(`file:///${outputPath}`);
   } catch (e) {
     console.error(e);
   }
