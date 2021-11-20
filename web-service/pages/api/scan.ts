@@ -3,7 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import scan from '../../../src/scan';
 
 type Data = {
-  result: string
+  result: string,
+  folders: string[]
 }
 
 export default async function handler(
@@ -11,6 +12,12 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   const fixedSrcPath = '../../../../' + req.body.path;
-  const result = await scan({ srcPath: fixedSrcPath });
-  res.status(200).json({ result: result || '' });
+  const userExcludedFolders = req.body.excludedFolders || [];
+  const result = await scan({ srcPath: fixedSrcPath, userExcludedFolders }) || ['', []];
+  const answer = {
+    result: result[0],
+    folders: result[1],
+  };
+
+  res.status(200).json(answer);
 }

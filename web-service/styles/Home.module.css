@@ -40,8 +40,17 @@
   font-size: 1.5rem;
 }
 
+.grid {
+  display: flex;
+  align-items: top;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 800px;
+}
+
 .row {
   display: flex;
+  margin-bottom: 2rem;
 }
 
 .input {
@@ -49,3 +58,11 @@
   margin-right: 1rem;
 }
 
+.table {
+  background-color: lightgray;
+  margin-left: 2rem;
+}
+
+.table td {
+  background-color: white;
+}

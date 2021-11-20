@@ -165,12 +165,12 @@ const mergeStats = (globalStat, currentStat) => Object.keys(currentStat).reduce(
 /**
  * Обход дерева каталогов и возврат плоского массива имен файлов
  */
-const walk = async (dir) => {
+const walk = async (dir, userExcludedFolders = []) => {
   const files = await asyncFilter(await fs.readdir(dir), async (file) => {
     const filePath = path.join(dir, file);
     const stats = await fs.stat(filePath);
     if (stats.isDirectory()) {
-      return !excludedFolders.includes(file);
+      return !excludedFolders.includes(file) && !userExcludedFolders.includes(filePath);
     }
     return true;
   });
@@ -178,7 +178,7 @@ const walk = async (dir) => {
     const filePath = path.join(dir, file);
     const stats = await fs.stat(filePath);
 
-    return stats.isDirectory() ? walk(filePath) : filePath;
+    return stats.isDirectory() ? walk(filePath, userExcludedFolders) : filePath;
   });
   const filepaths = await Promise.all(promises);
   const flatten = filepaths.flat(255);
@@ -187,23 +187,45 @@ const walk = async (dir) => {
 };
 
 /**
+ * Обход дерева каталогов и возврат плоского массива каталогов
+ */
+const walkFolder = async (currentDir) => {
+  const currentDirEntries = await fs.readdir(currentDir);
+  const currentDirDirs = await asyncFilter(currentDirEntries, async (entry) => {
+    const entryPath = path.join(currentDir, entry);
+    const stats = await fs.stat(entryPath);
+    const isWalkableDir = stats.isDirectory() && !excludedFolders.includes(entry); 
+
+    return isWalkableDir;
+  });
+
+  const promises = currentDirDirs.map((folder) => walkFolder(path.join(currentDir, folder)));
+  const folderpaths = await Promise.all(promises.flat(255));
+  const result = [...folderpaths.flat(255), currentDir]; 
+
+  return result;
+};
+
+/**
  * Запуск через CLI-режим.
  */
-module.exports = async ({ cli = false, srcPath }) => {
+module.exports = async ({ cli = false, srcPath, userExcludedFolders = [] }) => {
   try {
     const relative = cli ? process.argv[2] : srcPath;
     if (!process.argv[2]) {
       console.log('No relative path argument given');
       process.exit();
     }
-    const filepaths = await walk(path.resolve(__dirname, '..', relative));
+    const filepaths = await walk(path.resolve(__dirname, '..', relative), userExcludedFolders);
+    const folderpaths = await walkFolder(path.resolve(__dirname, '..', relative));
+    const folders = await asyncFilter(folderpaths, async (f) => (await fs.stat(f)).isDirectory());
     const js = filepaths.filter((f) => path.extname(f) === '.js');
     const wordstats = await Promise.all(js.map(async (item) => processFile(item)));
     const wordstat = wordstats.reduce(mergeStats, {});
     const formatted = JSON.stringify(wordstat, Object.keys(wordstat).sort(), 2);
 
     if (!cli) {
-      return formatted;
+      return [wordstat, folders];
     }
 
     const data = `
