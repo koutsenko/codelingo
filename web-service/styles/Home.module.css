@@ -51,6 +51,7 @@
 .row {
   display: flex;
   margin-bottom: 2rem;
+  width: 24rem;
 }
 
 .input {
@@ -65,4 +66,21 @@
 
 .table td {
   background-color: white;
+}
+
+.container button {
+  margin: 1rem;
+  padding: 0.5rem 2rem;
+  cursor: pointer;
+}
+
+.select {
+  padding: 2rem 0 0.5rem 2rem;
+  background-color: lightgray;
+  border: 1px solid gray;
+  margin-bottom: 2rem;
+}
+
+.select label {
+  cursor: pointer;
 }

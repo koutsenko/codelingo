@@ -11,9 +11,12 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const fixedSrcPath = '../../../../' + req.body.path;
-  const userExcludedFolders = req.body.excludedFolders || [];
-  const result = await scan({ srcPath: fixedSrcPath, userExcludedFolders }) || ['', []];
+  const scanParams = {
+      ...(req.body.self && {self: req.body.self}),
+      ...(req.body.path && {srcPath: req.body.path}), 
+      userExcludedFolders:  req.body.excludedFolders || []
+  };
+  const result = await scan(scanParams) || ['', []];
   const answer = {
     result: result[0],
     folders: result[1],

@@ -207,17 +207,25 @@ const walkFolder = async (currentDir) => {
 };
 
 /**
- * Запуск через CLI-режим.
+ * Функция scan, доступна как в CLI-режиме, так и в Web-режиме.
  */
-module.exports = async ({ cli = false, srcPath, userExcludedFolders = [] }) => {
+module.exports = async ({ cli = false, srcPath, self = false, userExcludedFolders = [] }) => {
+  if (cli && !process.argv[2]) {
+    console.log('No abs path argument given');
+    process.exit();
+  }
+
   try {
-    const relative = cli ? process.argv[2] : srcPath;
-    if (!process.argv[2]) {
-      console.log('No relative path argument given');
-      process.exit();
+    let absPath;
+    if (cli) {
+      absPath = process.argv[2] === "__SELF__" ? path.resolve(__dirname, "../src") : process.argv[2];
+    } else {
+      absPath = self ? path.resolve(__dirname, '../../../../../src') : srcPath;
     }
-    const filepaths = await walk(path.resolve(__dirname, '..', relative), userExcludedFolders);
-    const folderpaths = await walkFolder(path.resolve(__dirname, '..', relative));
+
+  
+    const filepaths = await walk(absPath, userExcludedFolders);
+    const folderpaths = await walkFolder(absPath);
     const folders = await asyncFilter(folderpaths, async (f) => (await fs.stat(f)).isDirectory());
     const js = filepaths.filter((f) => path.extname(f) === '.js');
     const wordstats = await Promise.all(js.map(async (item) => processFile(item)));

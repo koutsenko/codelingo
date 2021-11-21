@@ -1,12 +1,12 @@
 {
-  "name": "CodeLingo",
+  "name": "codelingo",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --fix ./src",
-    "self": "node ./src/index.js ./src",
+    "self": "node ./src/index.js __SELF__",
     "start": "node ./src/index.js"
   },
   "keywords": [],

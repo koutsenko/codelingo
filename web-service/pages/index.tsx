@@ -5,15 +5,19 @@ import styles from '../styles/Home.module.css'
 
 const Home: NextPage = () => {
   const [touched, setTouched] = useState(false);
-  const [path, setPath] = useState<string>('./src');
+  const [path, setPath] = useState<string>('D:\\Crypto\\ethLisbon-donft');
   const [scan, setScan] = useState<Record<string, string>>({});
   const [excluded, setExcluded] = useState<string[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
+  const [self, setSelf] = useState<boolean>(false);
 
   const handlePathInputChange = (event: { target: HTMLInputElement }) => setPath(event.target.value);
   const handleScanButtonClick = async () => {
     const response = await fetch('/api/scan', {
-      body: JSON.stringify({ path, excludedFolders: excluded }),
+      body: JSON.stringify({
+        ...(self ? {self: true} : {path}), 
+        excludedFolders: excluded
+      }),
       headers: {
         'Content-Type': 'application/json'
       },
@@ -49,12 +53,21 @@ const Home: NextPage = () => {
           Extract all business logic from your code
         </p>
 
-        <div className={styles.row}>
-          <label>Path to source files
-            <input className={styles.input} type="text" onChange={handlePathInputChange} value={path} />
-          </label>
-          <button onClick={handleScanButtonClick}>Scan</button>
+        <div className={styles.select}>
+          <div className={styles.row}>
+            <input id="path" type="radio" checked={!self} onChange={() => setSelf(false)} />
+            <label htmlFor="path">Path to source files
+              <input disabled={self} className={styles.input} type="text" onChange={handlePathInputChange} value={path} />
+            </label>
+          </div>
+
+          <div className={styles.row}>
+            <input id="self" type="radio" checked={self} onChange={() => setSelf(true)}/>
+            <label htmlFor="self">Demo (self)</label>
+          </div>
         </div>
+
+        <button onClick={handleScanButtonClick}>Scan</button>
 
         {touched && (<div className={styles.grid}>
           <div>
